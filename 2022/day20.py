@@ -21,8 +21,7 @@ def prepare(numbers):
     numbers = list(reversed(numbers))
     for i, nr in enumerate(numbers):
         nr_obj = Number(nr, nr_before)
-        numbers[i] = nr_obj
-        nr_before = nr_obj
+        numbers[i] = nr_before = nr_obj
     return list(reversed(numbers))
 
 
@@ -38,31 +37,32 @@ class Number:
         return f"<{self.nr}>"
 
 
-def calculate(numbers: list):
+def calculate(numbers: list, nr_obj):
     len_numbers = len(numbers)
-    nr_obj = numbers[0]
-    i = 0
     while nr_obj:
+        if nr_obj.nr == 0:
+            nr_obj = nr_obj.next_nr
+            continue
         nr_position = numbers.index(nr_obj)
         new_position = nr_position + nr_obj.nr
         if new_position == 0:
+            # go to the end list instead of beginning list
             new_position = len_numbers
-        begins_count = new_position // len_numbers
-        new_position = new_position % len_numbers + begins_count
+        new_position = new_position % (len_numbers - 1)
         numbers.remove(nr_obj)
         numbers.insert(new_position, nr_obj)
         nr_obj = nr_obj.next_nr
-        i += 1
     return numbers
 
 
 def get_sum_coordinates(numbers, pos):
     for index_0, nr_obj in enumerate(numbers):
         if nr_obj.nr == 0:
+            # found index for Number(0, ...)
             break
     len_numbers = len(numbers)
     sum_coordinates = 0
-    print(f"Zero position: {index_0}")
+    print(f"Zero found on position {index_0} in list length {len_numbers}")
     for index_coord in pos:
         new_index = (index_0 + index_coord) % len_numbers
         sum_coordinates += numbers[new_index].nr
@@ -71,10 +71,27 @@ def get_sum_coordinates(numbers, pos):
     return sum_coordinates
 
 
+def calculate_with_key(numbers, decryption_key=1, calculation_count=1):
+    for nr_obj in numbers:
+        nr_obj.nr *= decryption_key
+    first_element = numbers[0]
+    for i in range(1, calculation_count + 1):
+        numbers = calculate(numbers, first_element)
+        # print(f'{i=}')
+        # print(numbers)
+
+    positions = [1000, 2000, 3000]
+    return get_sum_coordinates(numbers, positions)
+
+
+DECRYPTION_KEY = 811589153
+
 numbers_data = read_input()
+
 numbers_obj = prepare(numbers_data)
-# print(numbers_obj)
-numbers_obj = calculate(numbers_obj)
-positions = [1000, 2000, 3000]
-result = get_sum_coordinates(numbers_obj, positions)
+result = calculate_with_key(numbers_obj)
 print(f"The grove coordinates is {result}.")
+
+numbers_obj = prepare(numbers_data)
+result2 = calculate_with_key(numbers_obj, DECRYPTION_KEY, 10)
+print(f"The grove coordinates with key is {result2}.")
