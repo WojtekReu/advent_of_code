@@ -2,15 +2,13 @@
 """
 https://adventofcode.com/2022/day/17
 """
-from copy import deepcopy
 from itertools import cycle
 
 TUNNEL_WIDTH = 7
 POSITION_X0 = 2 + 1  # air + border
-HEIGHT_A = 3
-ROCKS_P1 = 2022
+ROCKS_P1 = 2022 + 1
 ROCKS_P2 = 1_000_000_000_000
-Y_ABOVE_BOTTOM = 4
+SHIFT_UP = 7
 
 
 def read_input() -> tuple:
@@ -35,22 +33,10 @@ def create_tunnel():
                 '|·······|\n' \
                 '|·······|\n' \
                 '|·······|\n' \
-                '+-------+\n'
+                '+#######+\n'
     for line in reversed(tunel_str.split()):
         tunnel.append([char for char in line])
     return tunnel
-
-
-def tunnel_extend(tunnel):
-    for y, row in enumerate(tunnel):
-        if '#' not in row and '-' not in row:
-            break
-
-    y += HEIGHT_A
-    while len(tunnel) < y + Y_ABOVE_BOTTOM:
-        tunnel.append(['|', '·', '·', '·', '·', '·', '·', '·', '|'])
-
-    return y
 
 
 def show(tunnel):
@@ -64,38 +50,18 @@ def simulate(figures, jets, rock_counts):
     figures_cycle = cycle(figures)
     jets_cycle = cycle(jets)
     tunnel = create_tunnel()
-    x = POSITION_X0
-    y = Y_ABOVE_BOTTOM
-    figure = next(figures_cycle)
-    rock = figure.create(tunnel, x, y)
-    while rock_counts:
-        rock.move(tunnel, next(jets_cycle))
-        if rock.can_down(tunnel):
+    cut_off_nr = -1  # Floor also is '#' char
+    for _ in range(rock_counts):
+        figure: Figure = next(figures_cycle)
+        rock, tunnel, y, cut_off_nr = figure.create(tunnel, cut_off_nr, jets_cycle)
+        while rock.can_down(tunnel):
             rock.down(tunnel)
-        else:
-            rock_counts -= 1
-            figure = next(figures_cycle)
-            y = tunnel_extend(tunnel)
-            rock = figure.create(tunnel, x, y)
+            rock.move(tunnel, next(jets_cycle))
 
-    # print(show(tunnel))
-    return y - Y_ABOVE_BOTTOM
-
-
-class Position:
-
-    def __init__(self, data: list[list[int]]):
-        self.data = deepcopy(data)
-
-    def __add__(self, other):
-        for y, row in enumerate(self.data):
-            for x, el in enumerate(row):
-                self.data[y][x] = el + other
-
-    def __mul__(self, other):
-        for y, row in enumerate(self.data):
-            for x, el in enumerate(row):
-                self.data[y][x] = el * other
+        # print(show(tunnel))
+        # a = 3444444
+    # print(f"{cut_off_nr=}")
+    return cut_off_nr + y
 
 
 class Figure:
@@ -110,6 +76,7 @@ class Figure:
         self.numeric = []
         self.right_edge = []
         self.left_edge = []
+        self.upper_edge = []
         for row, line in enumerate(reversed(str_representation.split())):
             self.visual.append(line.strip())
 
@@ -119,11 +86,14 @@ class Figure:
         self.height = len(self.visual)
         self.width = len(self.visual[0])
         self.bottom_edge = [0] * self.width
+        self.upper_edge = [0] * self.width
 
         for row, line in enumerate(str_representation.split()):
             for col, char in enumerate(line):
                 if char == "#":
                     self.bottom_edge[col] = self.height - row - 1
+                    if not self.upper_edge[col]:
+                        self.upper_edge[col] = self.height - row - 1
 
     def __repr__(self):
         return f"<{self.nr}>"
@@ -131,20 +101,36 @@ class Figure:
     def __str__(self):
         return "\n".join(self.visual)
 
-    def create(self, tunnel: list, x: int, y):
-        rock = Rock(self, x, y)
-        t_height = len(tunnel)
-        for r_y, row in enumerate(rock.figure.visual):
-            for r_x, char in enumerate(row):
+    def create(self, tunnel: list, cut_off_nr, jets_cycle):
+        tunnel_len = len(tunnel)
+        if 300 < tunnel_len:
+            cut_off_nr = cut_off_nr + (tunnel_len - 290)
+            tunnel = tunnel[-290:]
+        for y, row in enumerate(tunnel):
+            if '#' not in row:
+                break
+
+        for _ in range(y + SHIFT_UP - tunnel_len):
+            tunnel.append(['|', '·', '·', '·', '·', '·', '·', '·', '|'])
+
+        rock = Rock(self, POSITION_X0, y, jets_cycle)
+        x = rock.x
+        for dy, row in enumerate(rock.figure.visual):
+            for dx, char in enumerate(row):
                 if char == '#':
-                    tunnel[r_y+y][r_x+x] = '#'
-        return rock
+                    tunnel[dy + y][dx + x] = '#'
+        return rock, tunnel, y, cut_off_nr
 
 
 class Rock:
-    position: Position
 
-    def __init__(self, figure, x, y):
+    def __init__(self, figure, x, y, jets_cycle):
+        for i in range(4):
+            dx = 1 if next(jets_cycle) == '>' else -1
+            if dx == 1 and x + dx + figure.width < 9:
+                x += dx
+            elif dx == -1 and 0 < x + dx:
+                x += dx
         self.x = x
         self.y = y
         self.figure: Figure = figure
@@ -155,58 +141,39 @@ class Rock:
     def move(self, tunnel: list, dir_str):
         direction = 1
         edge = self.figure.right_edge
+        other_edge = self.figure.left_edge
         if dir_str == '<':
             direction = -1
             edge = self.figure.left_edge
+            other_edge = self.figure.right_edge
 
         for dy, edge_nr in enumerate(edge):
-            x = self.x + edge_nr + direction
-            y = self.y + dy
-            if tunnel[y][x] != '·':
+            if tunnel[self.y + dy][self.x + edge_nr + direction] != '·':
                 return
 
-        for r_y, row in enumerate(self.figure.visual):
-            for r_x, cel in enumerate(row):
-                if cel == '#':
-                    tunnel[r_y+self.y][r_x+self.x] = '·'
+        for dy, edge_nr in enumerate(edge):
+            tunnel[self.y + dy][self.x + edge_nr + direction] = '#'
+            tunnel[self.y + dy][self.x + other_edge[dy]] = '·'
 
         self.x += direction
 
-        for r_y, row in enumerate(self.figure.visual):
-            for r_x, cel in enumerate(row):
-                if cel == '#':
-                    tunnel[r_y+self.y][r_x+self.x] = '#'
-
     def can_down(self, tunnel: list):
         for dx, edge_nr in enumerate(self.figure.bottom_edge):
-            x = self.x + dx
-            y = self.y + edge_nr - 1
-            if tunnel[y][x] != '·':
+            if tunnel[self.y + edge_nr - 1][self.x + dx] != '·':
                 return False
         return True
 
     def down(self, tunnel: list):
-        for r_y, row in enumerate(self.figure.visual):
-            for r_x, cel in enumerate(row):
-                if cel == '#':
-                    tunnel[r_y+self.y][r_x+self.x] = '·'
+        edge = self.figure.bottom_edge
+        other_edge = self.figure.upper_edge
+        for dx, edge_nr in enumerate(edge):
+            tunnel[self.y + edge_nr - 1][self.x + dx] = '#'
+            tunnel[self.y + other_edge[dx]][self.x + dx] = '·'
 
         self.y -= 1
-
-        for r_y, row in enumerate(self.figure.visual):
-            for r_x, cel in enumerate(row):
-                if cel == '#':
-                    tunnel[r_y+self.y][r_x+self.x] = '#'
 
 
 rocks_data, jets_data = read_input()
 tower_height = simulate(rocks_data, jets_data, ROCKS_P1)
 
 print(f"Tower has {tower_height} units height.")
-
-
-def show_rocks(rocks):
-    for r in rocks:
-        print(str(r))
-        print()
-
