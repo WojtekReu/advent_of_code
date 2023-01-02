@@ -7,7 +7,6 @@ from itertools import cycle
 TUNNEL_WIDTH = 7
 POSITION_X0 = 2 + 1  # air + border
 ROCKS_P1 = 2022 + 1
-ROCKS_P2 = 1_000_000_000_000
 SHIFT_UP = 7
 
 
@@ -59,7 +58,6 @@ def simulate(figures, jets, rock_counts):
             rock.move(tunnel, next(jets_cycle))
 
         # print(show(tunnel))
-        # a = 3444444
     # print(f"{cut_off_nr=}")
     return cut_off_nr + y
 
