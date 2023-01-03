@@ -13,18 +13,17 @@ SHIFT_Y0 = 4
 SEARCH_Y_START = 6
 ROCKS_P1 = 2022
 ROCKS_P2 = 1_000_000_000_000
-ROCKS_P2_TEST = 1_000_000
 SHIFT_UP = 8  # space above last rock + max rock height
 CUT_OFF = 27  # cut tetris lines bellow max possible down
 
 
 def read_input() -> tuple:
-    with open('day17.input1.txt', "r") as f:
+    with open("day17.input1.txt", "r") as f:
         data = f.read()
 
     figures = [Figure(nr, str_data) for nr, str_data in enumerate(data.split("\n\n"))]
 
-    with open('day17.input2.txt', "r") as f:
+    with open("day17.input2.txt", "r") as f:
     # with open('day17.test.txt', "r") as f:
         data = f.read()
 
@@ -43,7 +42,7 @@ def create_tunnel():
 
 
 def show(point_corner, rock):
-    tetris = ''
+    tetris = ""
     point_down = point_corner
     while point_down:
         point_right = point_down
@@ -60,36 +59,48 @@ def show(point_corner, rock):
 
 def simulate(figures, jets, rock_counts):
     figures_cycle = cycle(figures)
-    jets_cycle = cycle(jets)
+    jets_cycle = cycle(enumerate(jets))
     point_corner = create_tunnel()
+    deeps = {}
 
     y = -1
-    for _ in range(rock_counts):
+    for rock_i in range(1, rock_counts + 1):
         figure: Figure = next(figures_cycle)
         rock, point_corner = figure.create(point_corner, y)
         # print(show(point_corner, rock))
         while True:
-            char = next(jets_cycle)
-            if char == '>':
-                rock.go('right')
+            jet_i, jet = next(jets_cycle)
+            if jet == ">":
+                rock.go("right")
             else:
-                rock.go('left')
-            if not rock.go('down'):
+                rock.go("left")
+            if not rock.go("down"):
                 point = rock.stop()
                 y = max(point.y, y)
                 if CUT_OFF < y - point.y:
-                    # free memory from not used objects
-                    point_a = point
-                    while point:
-                        point.down = None
-                        point = point.right
-                    while point_a:
-                        point_a.down = None
-                        point_a = point_a.left
-
+                    point.cut_off_points_bellow()
                 break
 
-    return y + 1
+        deep = point_corner.get_deep()
+        deeps_key = (figure.nr, jet_i, deep)
+        if deeps_key in deeps:
+            rock_before, y_before = deeps[figure.nr, jet_i, deep]
+            y_cycle = y - y_before
+            rocks_cycle = rock_i - rock_before
+            rocks_mul = rock_counts // rocks_cycle
+            rocks_rest = rock_counts % rocks_cycle
+            for k, l in deeps.items():
+                if l[0] == rocks_rest:
+                    y_rest = l[1]
+                    break
+
+            y_result = y_cycle * rocks_mul + y_rest + 1
+            # print(f"For {rock_counts} rocks y = {y_result} = {y_cycle} * {rocks_mul} + {y_rest} + 1")
+            return rock_counts, y_result
+
+        deeps[figure.nr, jet_i, deep] = rock_i, y
+
+    return rock_counts, y + 1
 
 
 class Figure:
@@ -106,9 +117,9 @@ class Figure:
 
         for y, line in enumerate(reversed(str_representation.split())):
             for x, char in enumerate(line):
-                if x == 0 and y == 0 and char == '.':
+                if x == 0 and y == 0 and char == ".":
                     self.shift = 1
-                if char == '#':
+                if char == "#":
                     self.points.append((y, x))
 
             self.visual.append(line.strip())
@@ -201,7 +212,7 @@ class Figure:
 
 
 class Point:
-    char = '.'
+    char = "."
     x: int
     y: int
     left = None
@@ -215,6 +226,47 @@ class Point:
     def __repr__(self):
         return f"{self.char}{self.x},{self.y}"
 
+    def get_deep(self) -> tuple:
+        point = self.get_deep_start()
+        deeps = []
+        while point:
+            i = 0
+            point_deep = point
+            while point_deep:
+                if point_deep.char == "#":
+                    deeps.append(i)
+                    break
+                i += 1
+                point_deep = point_deep.down
+            else:
+                deeps.append(i)
+            point = point.right
+        return tuple(deeps)
+
+    def get_deep_start(self):
+        point_x0 = self
+        while point_x0:
+            point = point_x0
+            while point:
+                if point.char == "#":
+                    return point_x0
+                point = point.right
+            point_x0 = point_x0.down
+        return point_x0
+
+    def cut_off_points_bellow(self):
+        """
+        free memory for not used point objects
+        """
+        point = self
+        point_a = point
+        while point:
+            point.down = None
+            point = point.right
+        while point_a:
+            point_a.down = None
+            point_a = point_a.left
+
 
 class Rock:
     point: Point = None
@@ -226,13 +278,13 @@ class Rock:
         return f"R -"
 
     def go(self, direction: str):
-        if direction == 'down':
+        if direction == "down":
             point_next = self.point.down
-        elif direction == 'left':
+        elif direction == "left":
             point_next = self.point.left
-        elif direction == 'right':
+        elif direction == "right":
             point_next = self.point.right
-        if point_next and point_next.char == '.':
+        if point_next and point_next.char == ".":
             if self.next:
                 if self.next.go(direction):
                     self.point = point_next
@@ -258,6 +310,6 @@ class Rock:
 
 
 rocks_data, jets_data = read_input()
-tower_height = simulate(rocks_data, jets_data, ROCKS_P2_TEST)
+rocks, tower_height = simulate(rocks_data, jets_data, ROCKS_P2)
 
-print(f"Tower has {tower_height} units height.")
+print(f"For {rocks} rocks tower has {tower_height} units height.")
