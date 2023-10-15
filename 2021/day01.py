@@ -2,7 +2,7 @@
 """
 https://adventofcode.com/2021/day/1
 """
-with open('day01.input.txt', "r") as f:
+with open("day01.input.txt", "r") as f:
     data = f.read()
 
 old_depth = 99999999

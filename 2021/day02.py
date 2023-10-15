@@ -2,7 +2,7 @@
 """
 https://adventofcode.com/2021/day/2
 """
-with open('day02.input.txt', "r") as f:
+with open("day02.input.txt", "r") as f:
     data = f.read()
 
 horizontal_sum = 0

@@ -2,10 +2,10 @@
 """
 https://adventofcode.com/2021/day/3
 """
-with open('day03.input.txt', "r") as f:
+with open("day03.input.txt", "r") as f:
     data = f.read()
 
-how_many_1 = [0,0,0,0,0,0,0,0,0,0,0,0]
+how_many_1 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 lines_nr = 500  # half of 1000 lines
 max_nr = pow(2, 12) - 1  # 4095
@@ -37,7 +37,7 @@ for pos in range(12):
     counter_1 = 0
     counter_0 = 0
     for line in data2:
-        if line[pos] == '0':
+        if line[pos] == "0":
             counter_0 += 1
         else:
             counter_1 += 1
@@ -58,7 +58,7 @@ for pos in range(12):
     counter_1 = 0
     counter_0 = 0
     for line in data2:
-        if line[pos] == '0':
+        if line[pos] == "0":
             counter_0 += 1
         else:
             counter_1 += 1
