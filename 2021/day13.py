@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
 https://adventofcode.com/2021/day/13
-real	0m3,242s
 """
 FILENAME = "day13.input.txt"
 
