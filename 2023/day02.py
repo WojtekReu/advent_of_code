@@ -2,8 +2,6 @@
 """
 https://adventofcode.com/2023/day/02
 """
-import re
-
 FILENAME = "day02.input.txt"
 
 
