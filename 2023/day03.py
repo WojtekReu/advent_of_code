@@ -2,6 +2,8 @@
 """
 https://adventofcode.com/2023/day/03
 """
+from collections import defaultdict
+
 FILENAME = "day03.input.txt"
 
 
@@ -68,7 +70,7 @@ def calculate(matrix):
 
 def calculate2(matrix):
     nr = ""
-    elements = {}
+    elements = defaultdict(list)
     max_y = len(matrix) - 1
     adjacent = False
     for y, line in enumerate(matrix):
@@ -82,11 +84,7 @@ def calculate2(matrix):
                 if nr:
                     value = int(nr)
                     nr = ""
-                    if adjacent:
-                        if adjacent in elements:
-                            elements[adjacent].append(value)
-                        else:
-                            elements[adjacent] = [value]
+                    elements[adjacent].append(value)
                     adjacent = False
 
     sum_values = 0
