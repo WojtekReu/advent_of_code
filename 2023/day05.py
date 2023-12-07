@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """
 https://adventofcode.com/2023/day/05
-real time   0m0,042s
+real time   0m0,038s
 """
-FILENAME = "day05.input.txt"
 import re
+from collections import deque
+
+FILENAME = "day05.input.txt"
 
 
 class PlantMap:
@@ -128,10 +130,11 @@ def generate_seed_ranges(old_seeds: list) -> list:
 
 
 def calculate(plant_maps, seeds):
+    seeds = deque(seeds)
     for p_map in plant_maps:
-        seeds_converted = []
+        seeds_converted = deque()
         while seeds:
-            seed = seeds.pop(0)
+            seed = seeds.popleft()
             seeds_converted.append(p_map.convert(seed, seeds))
 
         if p_map.destination_category == "location":
@@ -149,7 +152,9 @@ if __name__ == "__main__":
     pm, s = prepare(data)
     result = calculate(pm, s.copy())
     print(f"The lowest location number for seed numbers is {result}.")
+    assert result == 525792406
     s = generate_seed_ranges(s)
 
     result2 = calculate(pm, s)
     print(f"The lowest location number for seed ranges is {result2}.")
+    assert result2 == 79004094
