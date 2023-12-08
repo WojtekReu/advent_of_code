@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-https://adventofcode.com/2023/day/07
+https://adventofcode.com/2023/day/7
 real time  0m0,044s
 """
 FILENAME = "day07.input.txt"
