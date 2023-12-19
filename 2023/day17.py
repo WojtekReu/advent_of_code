@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 https://adventofcode.com/2023/day/17
-P1 : real time 0m2,149s
+real time  0m7,725s
 """
 import heapq
 
@@ -74,10 +74,10 @@ class Crucible:
     def __gt__(self, other):
         return other.sum < self.sum
 
-    def next_step(self):
+    def next_step(self, condition_p2):
         self.visited.append(self.block)
         for direction, block in self.block.adjacents.items():
-            if self.is_allowed(direction):
+            if self.is_allowed(direction, condition_p2):
                 if self.direction_straight == direction:
                     yield Crucible(
                         block,
@@ -93,11 +93,17 @@ class Crucible:
                             block, 0, direction, self.sum + block.heat_loose, self.visited.copy()
                         )
 
-    def is_allowed(self, direction):
+    def is_allowed(self, direction, condition_p2):
         if self.direction_straight == direction:
-            if 2 <= self.steps_straight:
-                return False
+            if condition_p2:
+                if 9 <= self.steps_straight:
+                    return False
+            else:
+                if 2 <= self.steps_straight:
+                    return False
         elif REVERSED_DIRECTIONS[direction] == self.direction_straight:
+            return False
+        elif self.steps_straight < 3 and condition_p2:
             return False
         return True
 
@@ -133,7 +139,7 @@ def prepare(data: str):
     return grid
 
 
-def calculate(grid):
+def calculate(grid, condition_p2=False):
     path_with_min_loses = 9999999
 
     y_max = len(grid) - 1
@@ -151,8 +157,8 @@ def calculate(grid):
     heap = []
     crucible_start = Crucible(
         block=bs,
-        steps_straight=0,
-        direction_straight="W",
+        steps_straight=4,
+        direction_straight="",
         c_sum=0,
         visited=[],
     )
@@ -163,13 +169,12 @@ def calculate(grid):
         if crucible.block.is_finished:
             if crucible.sum < path_with_min_loses:
                 path_with_min_loses = crucible.sum
-                blocks_before_for_path = crucible.visited.copy()
+                # blocks_before_for_path = crucible.visited.copy()
 
-        for c_next in crucible.next_step():
+        for c_next in crucible.next_step(condition_p2):
             heapq.heappush(heap, c_next)
 
-    print("--------------")
-    show(grid, blocks_before_for_path)
+    # show(grid, blocks_before_for_path)
     return path_with_min_loses
 
 
@@ -179,3 +184,8 @@ if __name__ == "__main__":
     res1 = calculate(g)
     print(f"The possible least heat loss is {res1}.")
     assert res1 == 870
+
+    g = prepare(data)
+    res2 = calculate(g, True)
+    print(f"The possible least heat loss for steps in range 4-10 is {res2}.")
+    assert res2 == 1063
