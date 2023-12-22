@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """
 https://adventofcode.com/2023/day/22
+real time  0m33,489s
 """
 from collections import namedtuple, defaultdict
+from copy import deepcopy
 
 FILENAME_TEST = "day22.test.txt"
 FILENAME_INPUT = "day22.input.txt"
@@ -17,8 +19,8 @@ class Brick:
 
     def __init__(self, l):
         begin, end = l.split("~")
-        self.x, self.y, self.z = (int(v) for v in begin.split(","))
-        self.e_x, self.e_y, self.e_z = (int(v) for v in end.split(","))
+        self.x, self.y, self.z = map(int, begin.split(","))
+        self.e_x, self.e_y, self.e_z = map(int, end.split(","))
         self.calc_contains()
 
     def __repr__(self):
@@ -59,6 +61,7 @@ def prepare(data: str):
 
 
 def bricks_go_down(bricks: list[Brick]):
+    count_moved = 0
     bricks.sort(key=lambda b: b.z)
     x_max = max(bricks, key=lambda b: b.x).x
     y_max = max(bricks, key=lambda b: b.y).y
@@ -76,11 +79,14 @@ def bricks_go_down(bricks: list[Brick]):
             coords = f"{el.x},{el.y}"
             z_area[coords] = el.z + 1
 
+        if 0 < d_min:
+            count_moved += 1
+
+    return count_moved
+
 
 def bricks_locked(bricks):
     bricks.sort(key=lambda b: b.z)
-
-    z_max = max(bricks, key=lambda b: b.z).z
     z_areas = defaultdict(dict)
 
     for brick in bricks:
@@ -114,14 +120,31 @@ def show(bricks):
 
 def calculate(bricks):
     bricks_go_down(bricks)
-    res = bricks_locked(bricks)
+    bricks_to_remove = bricks_locked(bricks)
     # show(bricks)
-    return res
+    return bricks_to_remove
+
+
+def calculate2(bricks):
+    bricks.sort(key=lambda b: b.z)
+    num_sum = 0
+    for i, brick in enumerate(bricks):
+        if brick.is_locking:
+            bricks_copy = deepcopy(bricks)
+            del bricks_copy[i]
+            num = bricks_go_down(bricks_copy)
+            num_sum += num
+
+    return num_sum
 
 
 if __name__ == "__main__":
     data = read_input(FILENAME_INPUT)
     b = prepare(data)
     res1 = calculate(b)
-
     print(f"You can remove one from {res1} stack and other bricks don't move.")
+    assert res1 == 517
+
+    res2 = calculate2(b)
+    print(f"The sum of the number of other bricks that would fall is {res2}.")
+    assert res2 == 61276
