@@ -18,4 +18,4 @@ print(f"Elf carrying most Calories cary {max_value} calories.")
 
 sum_3 = sum(sorted([sum(calories) for calories in elves])[-3:])
 
-print(f"The Elves carryint {sum_3} calories.")
+print(f"The top three Elves carrying total {sum_3} calories.")

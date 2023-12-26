@@ -200,6 +200,6 @@ if __name__ == "__main__":
     sp, g = prepare(data)
     res1, res2 = calculate(sp, g)
     print(f"Number of steps for the farthest point from the starting position is {int(res1)}.")
-    print(f"Tails enclosed by loop is {res2}.")
+    print(f"Tiles enclosed by loop is {res2}.")
     assert res1 == 6725
     assert res2 == 383

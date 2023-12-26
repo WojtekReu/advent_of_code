@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
 https://adventofcode.com/2023/day/11
+pypy3 real time  0m0,629s
 """
 from collections import namedtuple
-from itertools import count
+from itertools import count, combinations
 
 FILENAME = "day11.input.txt"
 EXPANSION_SIZE_P1 = 2
@@ -54,14 +55,13 @@ def calculate_distance(g1, g2, expansion_size, expand_y, expand_x):
 
 def calculate(universe, expand_coords, expansion_size):
     distances = {}
-    for g1 in universe:
-        for g2 in universe:
-            if g1 is not g2:
-                distance_key = tuple(sorted((g1.nr, g2.nr)))
-                if distance_key not in distances:
-                    distances[distance_key] = calculate_distance(
-                        g1, g2, expansion_size, *expand_coords
-                    )
+    for g1, g2 in combinations(universe, 2):
+        if g1 is not g2:
+            distance_key = tuple(sorted((g1.nr, g2.nr)))
+            if distance_key not in distances:
+                distances[distance_key] = calculate_distance(
+                    g1, g2, expansion_size, *expand_coords
+                )
 
     d_sum = sum(distances.values())
     return d_sum

@@ -15,7 +15,6 @@ print(f"Priorities: {priority}")
 
 priority_sum = 0
 for line in data.split():
-    items = []
     x = int(len(line)/2)
     comp1, comp2 = line[:x], line[x:]
     for item in comp1:
