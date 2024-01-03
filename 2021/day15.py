@@ -3,7 +3,7 @@
 https://adventofcode.com/2021/day/15
 real time   10m15,688s
 """
-FILENAME = "day15.input.txt"
+FILENAME = "day15.test.txt"
 INITIAL_RISK_LEVEL = 999999
 
 

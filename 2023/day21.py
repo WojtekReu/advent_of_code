@@ -100,7 +100,7 @@ class Gardener:
             )
 
     def is_even(self) -> bool:
-        if not self.step % 2:  # shift is 0 for odd or 1 for even max_step_number
+        if not self.step % 2:
             self.check_on_grid()
             return True
         return False
