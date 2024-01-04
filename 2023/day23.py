@@ -1,20 +1,22 @@
 #!/usr/bin/env python3
 """
 https://adventofcode.com/2023/day/23
-pypy3 real time  0m7,359s
+pypy3 real time  0m10,745ss
 """
-from collections import namedtuple, defaultdict, deque
-from copy import deepcopy
-from typing import Any
+from collections import namedtuple, deque
 
 FILENAME_TEST = "day23.test.txt"
 FILENAME_INPUT = "day23.input.txt"
+
+
+Node = namedtuple("Node", ["p1", "p2", "length"])
 
 
 class Point:
     is_finish: bool = False
     visited: set = set()
     step: int = 0
+
     def __init__(self, y, x, c):
         self.y = y
         self.x = x
@@ -40,7 +42,6 @@ class Point:
     def is_node(self):
         return bool(2 < len(self.adjacent) or self.is_finish or (self.y == 0 and self.x == 1))
 
-
     def go_next(self, step):
         longest_path = 0
         self.visited.add(self)
@@ -58,6 +59,25 @@ class Point:
 
         return longest_path
 
+
+class Runner:
+    def __init__(self, point, visited, step):
+        self.point: Point = point
+        self.visited: set = visited
+        self.step = point.step = step
+
+    def __repr__(self):
+        return f"R: {self.point} - {self.step}"
+
+    def go(self):
+        for point_next in self.point.adjacent:
+            if point_next.step <= self.step + 1:
+                point_next_coords = f"{point_next.y},{point_next.x}"
+                if point_next_coords not in self.visited:
+                    self.visited.add(point_next_coords)
+                    yield Runner(point_next, self.visited.copy(), self.step + 1)
+
+
 def read_input(filename: str) -> str:
     with open(filename, "r") as f:
         return f.read()
@@ -69,7 +89,7 @@ def prepare(data: str, has_slopes):
     y_max = len(grid) - 1
     for row in grid:
         for point in row:
-            if point.c != '#':
+            if point.c != "#":
                 point.add_adjacent(grid[point.y][point.x - 1], has_slopes)
                 point.add_adjacent(grid[point.y][point.x + 1], has_slopes)
                 point.add_adjacent(grid[point.y - 1][point.x], has_slopes)
@@ -85,26 +105,34 @@ def prepare(data: str, has_slopes):
 
 
 def show(grid, longest_path_runner):
-    node_count = 0
     for row in grid:
         for p in row:
             coords = f"{p.y},{p.x}"
-            # if coords in longest_path_runner.visited:
-            #     print("O", end="")
-            if 2 < len(p.adjacent):
-                node_count += 1
-                print(len(p.adjacent), end="")
+            if coords in longest_path_runner.visited:
+                print("O", end="")
             else:
                 print(p.c, end="")
         print()
 
-    print("count nodes: ", node_count)
 
-
-Node = namedtuple('Node', ['p1', 'p2', 'length'])
-
-def calculate(point_start, point_end, grid):
+def calculate(point_start, point_end):
     longest_path = 0
+    queue = deque()
+    queue.append(Runner(point_start, {"0,1"}, 0))
+
+    while queue:
+        runner = queue.popleft()
+        if runner.point is point_end:
+            if longest_path < runner.step:
+                longest_path = runner.step
+                longest_path_runner = runner
+        for runner_next in runner.go():
+            queue.append(runner_next)
+
+    return longest_path, longest_path_runner
+
+
+def calculate2(point_start, point_end):
     point_end.is_finish = True
     node = Node(point_start, point_start, 0)
     queue = deque()
@@ -124,7 +152,6 @@ def calculate(point_start, point_end, grid):
                     break
             if is_break:
                 break
-
 
         for i in sorted(to_remove, reverse=True):
             del queue[i]
@@ -151,20 +178,19 @@ def calculate(point_start, point_end, grid):
 
     longest_path = point_start.go_next(0)
 
-    return longest_path, point_start
+    return longest_path
 
 
 if __name__ == "__main__":
     data = read_input(FILENAME_INPUT)
-    # ps, pe, grid = prepare(data, True)
-    # res1, _ = calculate(ps, pe, grid)
-    # print(f"For the P1 the longest hike is {res1} steps long.")
-
-    ps, pe, grid = prepare(data, False)
-    res2, lpr = calculate(ps, pe, grid)
+    ps, pe, grid = prepare(data, True)
+    res1, lpr = calculate(ps, pe)
     # show(grid, lpr)
+    print(f"For the P1 the longest hike is {res1} steps long.")
+
+    ps, pe, _ = prepare(data, False)
+    res2 = calculate2(ps, pe)
     print(f"For the P2 the longest hike is {res2} steps long.")
 
-    # assert res1 == 2362
+    assert res1 == 2362
     assert res2 == 6538
-
