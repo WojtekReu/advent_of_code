@@ -2,19 +2,10 @@
 """
 https://adventofcode.com/2020/day/03
 """
+from tools.input import grid_one, read_input
 
 FILENAME_INPUT = "day03.input.txt"
 SLOPES = ((1, 1), (3, 1), (5, 1), (7, 1), (1, 2))
-
-
-def read_input(filename: str) -> str:
-    with open(filename, "r") as f:
-        return f.read()
-
-
-def prepare(data: str):
-    tree_map = [line for line in data.split("\n")]
-    return tree_map
 
 
 def calculate(tree_map: list[str], right: int = 3, down: int = 1) -> int:
@@ -44,7 +35,7 @@ def calculate2(tree_map: list[str]):
 
 if __name__ == "__main__":
     data = read_input(FILENAME_INPUT)
-    tm = prepare(data)
+    tm = grid_one(data)
     result1 = calculate(tm)
     print(f"You would encounter {result1} trees.")
 
