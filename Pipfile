@@ -8,6 +8,7 @@ shapely = "*"
 colorama = "*"
 sympy = "*"
 networkx = "*"
+pytest = "*"
 
 [dev-packages]
 
