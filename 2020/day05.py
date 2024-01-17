@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-https://adventofcode.com/2020/day/05
+https://adventofcode.com/2020/day/5
 """
 from tools.input import read_input, grid_one
 

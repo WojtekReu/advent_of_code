@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-https://adventofcode.com/2020/day/01
+https://adventofcode.com/2020/day/1
 """
 from itertools import combinations
 from math import prod

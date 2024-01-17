@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-https://adventofcode.com/2020/day/04
+https://adventofcode.com/2020/day/4
 """
 from tools.input import read_input
 
