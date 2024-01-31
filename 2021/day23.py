@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """
 https://adventofcode.com/2021/day/23
-for TEST.1 pypy3 real time  2m26,820s
-for INPUT.1 pypy3 real time  33m15,484s
+for TEST.1 pypy3 real time  0m32,314s
+for INPUT.1 pypy3 real time  5m4,298s
+for TEST.2 pypy3 real time  7m55,127s
+for INPUT.2 pypy3 real time  47m33,320s
 """
 from itertools import cycle
 from typing import Generator
@@ -171,12 +173,14 @@ class Amphipod:
 
             while position.left and position.left.amphipod is None:
                 position, energy = self.next_position(position, "left", energy)
-                yield position, energy
+                if position.x != 3 and position.x != 5 and position.x != 7 and position.x != 9:
+                    yield position, energy
 
             position, energy = self.go_up()
             while position and position.right and position.right.amphipod is None:
                 position, energy = self.next_position(position, "right", energy)
-                yield position, energy
+                if position.x != 3 and position.x != 5 and position.x != 7 and position.x != 9:
+                    yield position, energy
 
         else:
             position, energy = self.go_to_site_room()
@@ -200,36 +204,30 @@ def prepare(data: str):
                 side_room.amphipod = amphipod
                 amphipods.append(amphipod)
 
-    # Amphipod.amphipods = amphipods
-
-    print(burrow)
+    # print(burrow)
     for position in burrow:
         position.find_adjacent(burrow)
 
     return amphipods
 
 
-def gen_amphipods(amphipods):
-    # At start all amphipods have Side Room positions.
+def gen_amphipods(amphipods, previous_amphipod):
     for amphipod in amphipods:
-        if amphipod.is_looking_side_room():
-            yield amphipod
+        if amphipod is not previous_amphipod:
+            if amphipod.is_looking_side_room():
+                yield amphipod
 
 
 def move_amphipods(amphipods, previous_amphipod) -> [int]:
-    for amphipod in gen_amphipods(amphipods):
-        if amphipod is previous_amphipod:
-            continue
+    for amphipod in gen_amphipods(amphipods, previous_amphipod):
         for position, energy in amphipod.gen_possible_positions():
             if position is amphipod.position:
                 break
 
             amphipod.set_position(position, energy)
             # print(f"{amphipod} ::: {amphipods}")
-            if amphipod.min_energy["value"] <= sum(a.used_energy for a in amphipods):
-                continue
-
-            move_amphipods(amphipods, amphipod)
+            if sum(a.used_energy for a in amphipods) < Amphipod.min_energy["value"]:
+                move_amphipods(amphipods, amphipod)
 
     if not [a for a in amphipods if a.is_looking_side_room()]:
         Amphipod.min_energy["value"] = min(
@@ -252,13 +250,12 @@ def main():
     a = prepare(data)
     result1 = calculate(a)
     print(f"At least {result1} energy is required to organize the amphipods.")
-    # assert result1 == 12521
     assert result1 == 19160
-    # a = prepare(read_input(FILENAME_INPUT_2))
-    # a.reverse()
-    # result2 = calculate(a)
-    # print(f"At least {result2} energy is required to organize the amphipods from unfolded diagram.")
-    # assert result2 == 44169
+    a = prepare(read_input(FILENAME_TEST_2))
+    a.reverse()
+    result2 = calculate(a)
+    print(f"At least {result2} energy is required to organize the amphipods from unfolded diagram.")
+    assert result2 == 47232
 
 
 if __name__ == "__main__":
