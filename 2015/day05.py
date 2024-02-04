@@ -61,5 +61,5 @@ if __name__ == "__main__":
     print(f"For new rules {result2} strings are nice.")
 
     assert result1 == 238
+    assert result2 == 69
 
-# 431 too high
