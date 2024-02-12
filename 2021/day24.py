@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 """
 https://adventofcode.com/2021/day/24
-real time  0m0,822s
+pypy3 real time  0m0,822s
 """
 from tools.input import read_input
 
 FILENAME_INPUT = "day24.input.txt"
-FILENAME_TEST = "day24.test.txt"
 
 
 class Instruction:

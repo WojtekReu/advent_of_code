@@ -9,3 +9,13 @@ def grid_one(data: str) -> list[str]:
     """
     grid = [line for line in data.split("\n")]
     return grid
+
+
+class BasePoint:
+    def __init__(self, y, x, char):
+        self.y = y
+        self.x = x
+        self.c = char
+
+    def __repr__(self):
+        return f"{self.c}{self.y}{self.x}"
